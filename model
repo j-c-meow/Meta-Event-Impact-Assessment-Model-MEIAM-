@@ -1,4 +1,6 @@
 import pandas as pd
+import os
+from datetime import datetime
 
 class MetaEventImpactModel:
     def __init__(self):
@@ -8,54 +10,52 @@ class MetaEventImpactModel:
         self.alpha = 0.5  # 经济效益权重
         self.beta = 0.3   # 社会效益权重
         self.gamma = 0.2  # 品牌影响力权重
-        self.data = None  # 存储输入数据
+        self.data = None  # 存储元事件数据
 
-    def load_data(self, data):
+    def load_meta_event_data(self):
         """
-        加载已有数据到模型。
-        :param data: 字典形式的数据，包含各目的地的游客数量、平均消费等。
+        从项目库中读取 meta_event_data.csv 文件。
+        :return: 包含元事件数据的 DataFrame。
         """
-        self.data = pd.DataFrame(data)
+        # 假设 meta_event_data.csv 位于当前工作目录
+        data_path = "meta_event_data.csv"
+        if not os.path.exists(data_path):
+            raise FileNotFoundError(f"未找到文件：{data_path}")
+        
+        # 读取 CSV 文件
+        self.data = pd.read_csv(data_path)
+        return self.data
 
-    def create_new_dataset(self):
+    def input_user_data(self):
         """
-        创建一个新的数据集，允许用户输入每个目的地的数据。
-        :return: 包含新数据集的字典。
+        用户输入数据。
+        :return: 包含用户输入数据的字典。
         """
-        new_data = {
-            "Destination": [],
-            "Visitors": [],
-            "Overnight_Stays": [],
-            "Hotels": [],
-            "Restaurants": [],
-            "Museums": [],
-            "Discos_Night_Clubs": [],
+        print("请输入以下数据：")
+        user_data = {
+            "Spending_Per_Visitor": float(input("每个游客的平均消费（美元）：")),
+            "Total_Cost": float(input("元事件的总成本（美元）：")),
         }
+        return user_data
 
-        print("请为每个目的地输入以下数据：")
-        num_destinations = int(input("请输入目的地的数量："))
-
-        for i in range(num_destinations):
-            print(f"\n目的地 {i + 1}:")
-            new_data["Destination"].append(input("目的地名称："))
-            new_data["Visitors"].append(int(input("游客数量：")))
-            new_data["Overnight_Stays"].append(int(input("过夜游客数量：")))
-            new_data["Hotels"].append(int(input("酒店数量：")))
-            new_data["Restaurants"].append(int(input("餐厅数量：")))
-            new_data["Museums"].append(int(input("博物馆数量：")))
-            new_data["Discos_Night_Clubs"].append(int(input("夜店数量：")))
-
-        return new_data
-
-    def input_parameters(self):
+    def save_user_data(self, user_data):
         """
-        用户输入每个游客的平均消费和元事件的总成本。
-        :return: 平均消费和总成本。
+        将用户输入的数据保存为 Excel 文件。
+        :param user_data: 包含用户输入数据的字典。
         """
-        print("\n请输入以下数据：")
-        spending_per_visitor = float(input("每个游客的平均消费（美元）："))
-        total_cost = float(input("元事件的总成本（美元）："))
-        return spending_per_visitor, total_cost
+        # 创建 history_data 文件夹
+        history_folder = "history_data"
+        os.makedirs(history_folder, exist_ok=True)
+
+        # 生成文件名（基于当前时间）
+        current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
+        file_name = f"user_input_data_{current_time}.xlsx"
+        file_path = os.path.join(history_folder, file_name)
+
+        # 将数据保存为 Excel 文件
+        df = pd.DataFrame([user_data])
+        df.to_excel(file_path, index=False)
+        print(f"\n用户输入数据已保存到 '{file_path}'")
 
     def calculate_economic_benefit(self, spending_per_visitor):
         """
@@ -64,7 +64,7 @@ class MetaEventImpactModel:
         :return: 包含经济效益的 DataFrame。
         """
         if self.data is None:
-            raise ValueError("数据未加载，请先调用 load_data 方法加载数据。")
+            raise ValueError("数据未加载，请先调用 load_meta_event_data 方法加载数据。")
         self.data["Economic_Benefit"] = self.data["Visitors"] * spending_per_visitor
         return self.data
 
@@ -74,7 +74,7 @@ class MetaEventImpactModel:
         :return: 包含社会效益的 DataFrame。
         """
         if self.data is None:
-            raise ValueError("数据未加载，请先调用 load_data 方法加载数据。")
+            raise ValueError("数据未加载，请先调用 load_meta_event_data 方法加载数据。")
         # 假设互动指数和社区参与度
         self.data["Interaction_Index"] = [0.8, 0.7, 0.75, 0.85]  # 互动指数
         self.data["Community_Engagement"] = [0.6, 0.5, 0.65, 0.7]  # 社区参与度
@@ -87,7 +87,7 @@ class MetaEventImpactModel:
         :return: 包含品牌影响力的 DataFrame。
         """
         if self.data is None:
-            raise ValueError("数据未加载，请先调用 load_data 方法加载数据。")
+            raise ValueError("数据未加载，请先调用 load_meta_event_data 方法加载数据。")
         # 假设品牌知名度和品牌一致性
         self.data["Brand_Awareness"] = [0.9, 0.8, 0.85, 0.95]  # 品牌知名度
         self.data["Brand_Consistency"] = [0.8, 0.75, 0.8, 0.85]  # 品牌一致性
@@ -100,7 +100,7 @@ class MetaEventImpactModel:
         :return: 包含综合效益的 DataFrame。
         """
         if self.data is None:
-            raise ValueError("数据未加载，请先调用 load_data 方法加载数据。")
+            raise ValueError("数据未加载，请先调用 load_meta_event_data 方法加载数据。")
         self.data["Total_Benefit"] = (
             self.alpha * self.data["Economic_Benefit"]
             + self.beta * self.data["Social_Benefit"]
@@ -115,7 +115,7 @@ class MetaEventImpactModel:
         :return: 包含成本效益比的 DataFrame。
         """
         if self.data is None:
-            raise ValueError("数据未加载，请先调用 load_data 方法加载数据。")
+            raise ValueError("数据未加载，请先调用 load_meta_event_data 方法加载数据。")
         self.data["Cost_Benefit_Ratio"] = self.data["Total_Benefit"] / total_cost
         return self.data
 
@@ -125,7 +125,7 @@ class MetaEventImpactModel:
         :return: 汇总结果（总经济效益、总社会效益、总品牌影响力、总综合效益）。
         """
         if self.data is None:
-            raise ValueError("数据未加载，请先调用 load_data 方法加载数据。")
+            raise ValueError("数据未加载，请先调用 load_meta_event_data 方法加载数据。")
         total_economic_benefit = self.data["Economic_Benefit"].sum()
         total_social_benefit = self.data["Social_Benefit"].sum()
         total_brand_impact = self.data["Brand_Impact"].sum()
@@ -142,7 +142,7 @@ class MetaEventImpactModel:
         打印各目的地的效益计算结果和汇总结果。
         """
         if self.data is None:
-            raise ValueError("数据未加载，请先调用 load_data 方法加载数据。")
+            raise ValueError("数据未加载，请先调用 load_meta_event_data 方法加载数据。")
         print("\n各目的地的效益计算结果：")
         print(self.data)
 
@@ -156,44 +156,34 @@ class MetaEventImpactModel:
 
 # 示例使用
 if __name__ == "__main__":
-    # 初始化模型
-    model = MetaEventImpactModel()
+    try:
+        # 初始化模型
+        model = MetaEventImpactModel()
 
-    # 步骤 1：加载数据
-    print("请选择数据来源：")
-    print("1. 使用论文中的表1数据")
-    print("2. 创建新的数据集")
-    choice = input("请输入选项（1 或 2）：")
+        # 步骤 1：读取 meta_event_data.csv
+        print("正在读取元事件数据...")
+        meta_event_df = model.load_meta_event_data()
+        print("\n元事件数据：")
+        print(meta_event_df)
 
-    if choice == "1":
-        # 论文中表1的数据
-        data = {
-            "Destination": ["Rimini", "Ferrara", "Forlì-Cesena", "Ravenna"],
-            "Visitors": [3147464, 463341, 976803, 1281517],  # 游客数量
-            "Overnight_Stays": [15504706, 2401526, 5200540, 6231885],  # 过夜游客数量
-            "Hotels": [2253, 102, 504, 560],  # 酒店数量
-            "Restaurants": [1753, 1225, 1403, 1556],  # 餐厅数量
-            "Museums": [12, 11, 6, 31],  # 博物馆数量
-            "Discos_Night_Clubs": [72, 24, 28, 40],  # 夜店数量
-        }
-        model.load_data(data)
-    elif choice == "2":
-        # 创建新的数据集
-        new_data = model.create_new_dataset()
-        model.load_data(new_data)
-    else:
-        print("无效选项，程序退出。")
-        exit()
+        # 步骤 2：用户输入数据
+        user_data = model.input_user_data()
 
-    # 步骤 2：输入参数
-    spending_per_visitor, total_cost = model.input_parameters()
+        # 步骤 3：保存用户输入数据
+        model.save_user_data(user_data)
 
-    # 步骤 3：计算效益
-    model.calculate_economic_benefit(spending_per_visitor)
-    model.calculate_social_benefit()
-    model.calculate_brand_impact()
-    model.calculate_total_benefit()
-    model.calculate_cost_benefit_ratio(total_cost)
+        # 步骤 4：计算效益
+        spending_per_visitor = user_data["Spending_Per_Visitor"]
+        total_cost = user_data["Total_Cost"]
 
-    # 步骤 4：输出结果
-    model.print_results()
+        model.calculate_economic_benefit(spending_per_visitor)
+        model.calculate_social_benefit()
+        model.calculate_brand_impact()
+        model.calculate_total_benefit()
+        model.calculate_cost_benefit_ratio(total_cost)
+
+        # 步骤 5：输出结果
+        model.print_results()
+
+    except Exception as e:
+        print(f"发生错误：{e}")
