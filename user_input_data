@@ -1,0 +1,44 @@
+import pandas as pd
+import os
+from datetime import datetime
+
+# 用户输入数据
+def input_data():
+    """
+    用户输入数据。
+    :return: 包含用户输入数据的字典。
+    """
+    print("请输入以下数据：")
+    data = {
+        "Spending_Per_Visitor": float(input("每个游客的平均消费（美元）：")),
+        "Total_Cost": float(input("元事件的总成本（美元）：")),
+    }
+    return data
+
+# 保存数据到 history_data 文件夹
+def save_data(data):
+    """
+    将用户输入的数据保存为 Excel 文件。
+    :param data: 包含用户输入数据的字典。
+    """
+    # 创建 history_data 文件夹
+    history_folder = r"history_data"
+    os.makedirs(history_folder, exist_ok=True)
+
+    # 生成文件名（基于当前时间）
+    current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
+    file_name = f"data_{current_time}.xlsx"
+    file_path = os.path.join(history_folder, file_name)
+
+    # 将数据保存为 Excel 文件
+    df = pd.DataFrame([data])
+    df.to_excel(file_path, index=False)
+    print(f"\n数据已保存到 '{file_path}'")
+
+# 主程序
+if __name__ == "__main__":
+    # 用户输入数据
+    user_data = input_data()
+
+    # 保存数据
+    save_data(user_data)
